@@ -20,7 +20,7 @@ jobs:
             icon_flag: "--icon=assets/icon.ico"
           - os: macos-latest
             artifact_name: PDF-Box-Splitter-macos
-            exe_path: "dist/PDF Box Splitter"
+            exe_path: "dist/PDF Box Splitter.app"
             icon_flag: "--icon=assets/icon.icns"
 
     runs-on: ${{ matrix.os }}
@@ -34,15 +34,13 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          # python.org builds include tkinter on Windows and macOS.
-          # On Linux we installed the system tk libs above so this Python
-          # can find and bundle them.
           python-version: "3.12"
 
       - name: Install dependencies
         run: pip install pyinstaller -r requirements.txt
 
-      - name: Build executable
+      - name: Build executable (Linux & Windows)
+        if: runner.os != 'macOS'
         run: >
           pyinstaller
           --onefile
@@ -52,11 +50,35 @@ jobs:
           ${{ matrix.icon_flag }}
           split.py
 
-      - name: Upload artifact
+      - name: Build executable (macOS — .app bundle for icon support)
+        if: runner.os == 'macOS'
+        run: >
+          pyinstaller
+          --windowed
+          --name "PDF Box Splitter"
+          --collect-all tkinter
+          ${{ matrix.icon_flag }}
+          split.py
+
+      - name: Zip .app bundle (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          cd dist
+          zip -r "PDF-Box-Splitter-macos.zip" "PDF Box Splitter.app"
+
+      - name: Upload artifact (Linux & Windows)
+        if: runner.os != 'macOS'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_name }}
           path: ${{ matrix.exe_path }}
+
+      - name: Upload artifact (macOS)
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: dist/PDF-Box-Splitter-macos.zip
 
   release:
     needs: build
@@ -74,9 +96,9 @@ jobs:
 
       - name: Rename artifacts for release
         run: |
-          cp "artifacts/PDF-Box-Splitter-linux/PDF Box Splitter"        "PDF-Box-Splitter-linux"
-          cp "artifacts/PDF-Box-Splitter-windows/PDF Box Splitter.exe"  "PDF-Box-Splitter-windows.exe"
-          cp "artifacts/PDF-Box-Splitter-macos/PDF Box Splitter"        "PDF-Box-Splitter-macos"
+          cp "artifacts/PDF-Box-Splitter-linux/PDF Box Splitter"          "PDF-Box-Splitter-linux"
+          cp "artifacts/PDF-Box-Splitter-windows/PDF Box Splitter.exe"    "PDF-Box-Splitter-windows.exe"
+          cp "artifacts/PDF-Box-Splitter-macos/PDF-Box-Splitter-macos.zip" "PDF-Box-Splitter-macos.zip"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -84,5 +106,5 @@ jobs:
           files: |
             PDF-Box-Splitter-linux
             PDF-Box-Splitter-windows.exe
-            PDF-Box-Splitter-macos
+            PDF-Box-Splitter-macos.zip
           generate_release_notes: true

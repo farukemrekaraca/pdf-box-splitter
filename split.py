@@ -1,11 +1,12 @@
 import fitz  # PyMuPDF
 import os
 import json
+import platform
 try:
     import tkinter as tk
     from tkinter import filedialog, messagebox, scrolledtext
 except ModuleNotFoundError:
-    import sys, platform
+    import sys
     msg = (
         "tkinter is not available in your Python installation.\n\n"
         "Fix:\n"
@@ -26,7 +27,20 @@ import matplotlib.patches as patches
 from matplotlib.widgets import RectangleSelector
 import numpy as np
 
-COORDS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "coords.json")
+def _get_data_dir():
+    app_name = "PDF Box Splitter"
+    system = platform.system()
+    if system == "Windows":
+        base = os.environ.get("APPDATA", os.path.expanduser("~"))
+    elif system == "Darwin":
+        base = os.path.expanduser("~/Library/Application Support")
+    else:
+        base = os.environ.get("XDG_CONFIG_HOME", os.path.expanduser("~/.config"))
+    data_dir = os.path.join(base, app_name)
+    os.makedirs(data_dir, exist_ok=True)
+    return data_dir
+
+COORDS_FILE = os.path.join(_get_data_dir(), "coords.json")
 
 
 def _read_store():

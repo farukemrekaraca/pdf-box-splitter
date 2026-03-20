@@ -13,28 +13,58 @@ A desktop tool that lets you visually draw crop regions on a PDF page and extrac
 - Save and reuse crop coordinates — draw once, reuse on future runs
 - Output mode control — overwrite existing files or skip files that already exist
 
-## Requirements
+## Installation
 
-- Python 3.8+
-- `tkinter` — part of the standard library, but **not bundled** with Homebrew Python on macOS. Install it separately before creating your venv:
+### Option 1 — Pre-built executable (recommended)
 
-  ```bash
-  # macOS (Homebrew) — match the version you use, e.g. 3.14
-  brew install python-tk@3.14
+Download the latest release for your platform from the [Releases](../../releases) page — no Python installation needed.
 
-  # Linux (Debian/Ubuntu)
-  sudo apt install python3-tk
+| Platform | File |
+|----------|------|
+| Windows  | `PDF-Box-Splitter-windows.exe` |
+| macOS    | `PDF-Box-Splitter-macos.zip` |
+| Linux    | `PDF-Box-Splitter-linux` |
 
-  # Linux (Fedora/RHEL)
-  sudo dnf install python3-tkinter
+**macOS:** The app is unsigned. Unzip the file, then run this once in Terminal to remove the quarantine flag:
+```bash
+xattr -cr "PDF Box Splitter.app"
+```
+Then double-click the app normally.
 
-  # Windows — tkinter is included; no extra step needed
-  ```
+**Linux:** Mark the file as executable before running:
+```bash
+chmod +x PDF-Box-Splitter-linux
+./PDF-Box-Splitter-linux
+```
 
-  > If you skip this step the script will print a clear error with the exact command to run.
+### Option 2 — Run from source
 
-Create and activate a virtual environment, then install the remaining dependencies:
+Requires Python 3.8+.
 
+**1. Clone the repo**
+```bash
+git clone https://github.com/your-username/pdf-box-splitter.git
+cd pdf-box-splitter
+```
+
+**2. Install tkinter** (if not already available)
+
+tkinter is part of the standard library but not bundled with Homebrew Python on macOS:
+```bash
+# macOS (Homebrew) — match your Python version, e.g. 3.14
+brew install python-tk@3.14
+
+# Linux (Debian/Ubuntu)
+sudo apt install python3-tk
+
+# Linux (Fedora/RHEL)
+sudo dnf install python3-tkinter
+
+# Windows — tkinter is included; no extra step needed
+```
+> If you skip this step the script will print a clear error with the exact command to run.
+
+**3. Create a virtual environment and install dependencies**
 ```bash
 python3 -m venv venv
 
@@ -47,11 +77,12 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-## Usage
-
+**4. Run**
 ```bash
 python split.py
 ```
+
+## Usage
 
 1. **Input** — select a single PDF file or a folder containing multiple PDFs. Use the radio buttons to switch between modes.
 2. **Output folder** — optionally choose where the processed PDFs are saved. If left blank, an `output_pdfs/` folder is created next to your input.
@@ -67,24 +98,6 @@ python split.py
    - `Backspace` — undo the last confirmed box
    - `Escape` — finish and start processing
 6. Processed PDFs are saved to the output folder. Each original page produces one output page per box, in the order the boxes were drawn.
-
-## Pre-built executables
-
-Download the latest release for your platform from the [Releases](../../releases) page — no Python installation needed.
-
-| Platform | File |
-|----------|------|
-| Windows  | `PDF-Box-Splitter-windows.exe` |
-| macOS    | `PDF-Box-Splitter-macos` |
-| Linux    | `PDF-Box-Splitter-linux` |
-
-**macOS note:** The app is unsigned, so Gatekeeper will block it on first launch. To open it anyway, right-click (or Control-click) the file and choose **Open**, then confirm in the dialog. You only need to do this once.
-
-**Linux note:** You may need to mark the file as executable before running it:
-```bash
-chmod +x PDF-Box-Splitter-linux
-./PDF-Box-Splitter-linux
-```
 
 ## Output structure
 
