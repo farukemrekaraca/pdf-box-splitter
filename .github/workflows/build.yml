@@ -1,0 +1,88 @@
+name: Build Executables
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact_name: PDF-Box-Splitter-linux
+            exe_path: "dist/PDF Box Splitter"
+            icon_flag: "--icon=assets/icon.png"
+          - os: windows-latest
+            artifact_name: PDF-Box-Splitter-windows
+            exe_path: "dist/PDF Box Splitter.exe"
+            icon_flag: "--icon=assets/icon.ico"
+          - os: macos-latest
+            artifact_name: PDF-Box-Splitter-macos
+            exe_path: "dist/PDF Box Splitter"
+            icon_flag: "--icon=assets/icon.icns"
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tkinter (Linux only)
+        if: runner.os == 'Linux'
+        run: sudo apt-get install -y python3-tk
+
+      - uses: actions/setup-python@v5
+        with:
+          # python.org builds include tkinter on Windows and macOS.
+          # On Linux we installed the system tk libs above so this Python
+          # can find and bundle them.
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install pyinstaller -r requirements.txt
+
+      - name: Build executable
+        run: >
+          pyinstaller
+          --onefile
+          --windowed
+          --name "PDF Box Splitter"
+          --collect-all tkinter
+          ${{ matrix.icon_flag }}
+          split.py
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.exe_path }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: Rename artifacts for release
+        run: |
+          cp "artifacts/PDF-Box-Splitter-linux/PDF Box Splitter"        "PDF-Box-Splitter-linux"
+          cp "artifacts/PDF-Box-Splitter-windows/PDF Box Splitter.exe"  "PDF-Box-Splitter-windows.exe"
+          cp "artifacts/PDF-Box-Splitter-macos/PDF Box Splitter"        "PDF-Box-Splitter-macos"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            PDF-Box-Splitter-linux
+            PDF-Box-Splitter-windows.exe
+            PDF-Box-Splitter-macos
+          generate_release_notes: true
